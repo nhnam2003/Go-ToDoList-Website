@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +16,7 @@ import (
 )
 
 type ToDo struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Completed bool               `json:"completed"`
 	Body      string             `json:"body"`
 }
@@ -23,8 +24,12 @@ type ToDo struct {
 var collection *mongo.Collection
 
 func main() {
-	fmt.Println("Hello World")
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -105,18 +110,18 @@ func createTodo(c *fiber.Ctx) error {
 func updateTodo(c *fiber.Ctx) error {
 	id := c.Params("id")
 	// body := c.BodyParser("body")
-	var updatedData struct {
-		Body string `json:"body" `
-	}
-	if err := c.BodyParser(&updatedData); err != nil {
-		return err
-	}
+	// var updatedData struct {
+	// 	Body string `json:"body" `
+	// }
+	// if err := c.BodyParser(&updatedData); err != nil {
+	// 	return err
+	// }
 	ObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
 	filter := bson.M{"_id": ObjectID}
-	update := bson.M{"$set": bson.M{"completed": true, "body": updatedData.Body}}
+	update := bson.M{"$set": bson.M{"completed": true}}
 	result, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err

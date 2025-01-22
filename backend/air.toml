@@ -1,0 +1,19 @@
+# Cấu hình cơ bản cho Air
+root = "."      # Thư mục gốc của dự án
+tmp_dir = "tmp" # Thư mục tạm thời để build
+
+[build]
+bin = "main"                    # File binary output
+cmd = "go build -o main ."      # Lệnh build
+exclude_dir = ["tmp", "vendor"] # Bỏ qua các thư mục này
+
+[watch]
+extensions = ["go", "tpl", "tmpl"]       # Theo dõi file Go và template
+paths = ["./src", "./client"]
+ignore_dirs = [  # Dùng ignore_dirs thay cho ignore
+    "node_modules", 
+    "public", 
+    "node_modules/yaml",  # Loại bỏ thư mục node_modules/yaml
+    "node_modules/yocto-queue"  # Loại bỏ thư mục node_modules/yocto-queue
+]
+                            
