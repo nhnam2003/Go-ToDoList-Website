@@ -24,6 +24,7 @@ type ToDo struct {
 var collection *mongo.Collection
 
 func main() {
+
 	app := fiber.New()
 
 	app.Use(cors.New(cors.Config{
@@ -35,8 +36,20 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	//
 	PORT := os.Getenv("PORT")
 	MONGODB_URL := os.Getenv("MONGODB_URL")
+
+	// 
+
+	if os.Getenv("ENVIRONMENT") == "production" {
+		fmt.Println("Running in production mode")
+	} else {
+		fmt.Println("Running in development mode")
+	}
+
+
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(MONGODB_URL).SetServerAPIOptions(serverAPI)
