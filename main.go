@@ -88,10 +88,11 @@ func main() {
 	}
 
 	if os.Getenv("ENV") == "production" {
-		app.Static("/", "./client/dist") 
+		app.Static("/", "./client/dist")
 	}
 
-	log.Fatal(app.Listen(":" + PORT))
+	log.Fatal(app.Listen("0.0.0.0:" + port))
+
 }
 
 func getTodos(c *fiber.Ctx) error {
