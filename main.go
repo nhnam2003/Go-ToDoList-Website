@@ -25,16 +25,16 @@ var collection *mongo.Collection
 
 func main() {
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("❌ Lỗi khi tải .env:", err)
-	} else {
-		fmt.Println("✅ File .env đã được tải thành công!")
-	}
+	// err := godotenv.Load(".env")
+	// if err != nil {
+	// 	log.Fatal("❌ Lỗi khi tải .env:", err)
+	// } else {
+	// 	fmt.Println("✅ File .env đã được tải thành công!")
+	// }
 	
-	fmt.Println("PORT:", os.Getenv("PORT"))
-	fmt.Println("MONGODB_URL:", os.Getenv("MONGODB_URL"))
-	fmt.Println("ENV:", os.Getenv("ENV"))
+	// fmt.Println("PORT:", os.Getenv("PORT"))
+	// fmt.Println("MONGODB_URL:", os.Getenv("MONGODB_URL"))
+	// fmt.Println("ENV:", os.Getenv("ENV"))
 	
 
 	// err := godotenv.Load(".env")
