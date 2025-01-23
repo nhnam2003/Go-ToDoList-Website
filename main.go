@@ -25,13 +25,12 @@ var collection *mongo.Collection
 
 func main() {
 
-	if os.Getenv("ENV") != "production" {
-		// Load the .env file if not in production
-		err := godotenv.Load(".env")
-		if err != nil {
-			log.Fatal("Error loading .env file:", err)
-		}
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file:", err)
 	}
+	fmt.Println("PORT:", os.Getenv("PORT"))
+	fmt.Println("MONGODB_URL:", os.Getenv("MONGODB_URL"))
 
 	app := fiber.New()
 
