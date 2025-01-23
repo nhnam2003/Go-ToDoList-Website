@@ -40,7 +40,7 @@ func main() {
 	// }
 
 	//
-	PORT := os.Getenv("PORT")
+	// PORT := os.Getenv("PORT")
 	MONGODB_URL := os.Getenv("MONGODB_URL")
 
 	//
