@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	// "github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,18 +25,16 @@ var collection *mongo.Collection
 
 func main() {
 
-	if os.Getenv("ENV") != "production" {
+	if _, err := os.Stat(".env"); err == nil {
 		err := godotenv.Load(".env")
 		if err != nil {
 			log.Fatal("Lỗi khi tải .env file:", err)
 		}
-		fmt.Println("Đã tải .env thành công.")
+	} else {
+		log.Println("Tệp .env không tìm thấy, tiếp tục mà không tải.")
 	}
+	
 
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOrigins: "*",
-	// 	AllowHeaders: "Origin, Content-Type, Accept",
-	// }))
 
 	// err := godotenv.Load(".env")
 	// if err != nil {
@@ -71,6 +69,11 @@ func main() {
 	collection = client.Database("todo").Collection("todos")
 
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 
 	app.Get("/api/gettodos", getTodos)
