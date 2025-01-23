@@ -33,8 +33,6 @@ func main() {
 	} else {
 		log.Println("Tệp .env không tìm thấy, tiếp tục mà không tải.")
 	}
-	
-
 
 	// err := godotenv.Load(".env")
 	// if err != nil {
@@ -75,6 +73,9 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Server is running!")
+	})
 
 	app.Get("/api/gettodos", getTodos)
 	app.Post("/api/createtodos", createTodo)
