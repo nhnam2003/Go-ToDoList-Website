@@ -25,12 +25,16 @@ var collection *mongo.Collection
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file:", err)
+	if os.Getenv("ENV") != "production" {
+		// Load the .env file if not in production
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatal("Error loading .env file:", err)
+		}
 	}
 	fmt.Println("PORT:", os.Getenv("PORT"))
 	fmt.Println("MONGODB_URL:", os.Getenv("MONGODB_URL"))
+	fmt.Println("ENV:", os.Getenv("ENV"))
 
 	app := fiber.New()
 
@@ -79,6 +83,11 @@ func main() {
 	app.Post("/api/createtodos", createTodo)
 	app.Patch("/api/updatetodos/:id", updateTodo)
 	app.Delete("/api/deletetodos/:id", deleteTodo)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
 
 	log.Fatal(app.Listen(":" + PORT))
 }
