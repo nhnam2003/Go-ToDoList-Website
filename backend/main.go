@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	// "github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,12 +25,20 @@ var collection *mongo.Collection
 
 func main() {
 
+	if os.Getenv("ENV") != "production" {
+		// Load the .env file if not in production
+		err := godotenv.Load(".env")
+		if err != nil {
+			log.Fatal("Error loading .env file:", err)
+		}
+	}
+
 	app := fiber.New()
 
-	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
+	// app.Use(cors.New(cors.Config{
+	// 	AllowOrigins: "*",
+	// 	AllowHeaders: "Origin, Content-Type, Accept",
+	// }))
 
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -41,15 +49,11 @@ func main() {
 	PORT := os.Getenv("PORT")
 	MONGODB_URL := os.Getenv("MONGODB_URL")
 
-	// 
+	//
 
-	if os.Getenv("ENVIRONMENT") == "production" {
-		fmt.Println("Running in production mode")
-	} else {
-		fmt.Println("Running in development mode")
+	if os.Getenv("ENV") == "production" {
+		app.Static("/", "./client/dist")
 	}
-
-
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(MONGODB_URL).SetServerAPIOptions(serverAPI)
