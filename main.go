@@ -33,12 +33,6 @@ func main() {
 		fmt.Println("Đã tải .env thành công.")
 	}
 
-	fmt.Println("PORT:", os.Getenv("PORT"))
-	fmt.Println("MONGODB_URL:", os.Getenv("MONGODB_URL"))
-	fmt.Println("ENV:", os.Getenv("ENV"))
-
-	app := fiber.New()
-
 	// app.Use(cors.New(cors.Config{
 	// 	AllowOrigins: "*",
 	// 	AllowHeaders: "Origin, Content-Type, Accept",
@@ -54,10 +48,6 @@ func main() {
 	MONGODB_URL := os.Getenv("MONGODB_URL")
 
 	//
-
-	if os.Getenv("ENV") == "production" {
-		app.Static("/", "./client/dist")
-	}
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(MONGODB_URL).SetServerAPIOptions(serverAPI)
@@ -80,6 +70,9 @@ func main() {
 
 	collection = client.Database("todo").Collection("todos")
 
+	app := fiber.New()
+
+
 	app.Get("/api/gettodos", getTodos)
 	app.Post("/api/createtodos", createTodo)
 	app.Patch("/api/updatetodos/:id", updateTodo)
@@ -88,6 +81,10 @@ func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "5000"
+	}
+
+	if os.Getenv("ENV") == "production" {
+		app.Static("/", "./client/dist")
 	}
 
 	log.Fatal(app.Listen(":" + PORT))
