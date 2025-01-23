@@ -40,10 +40,10 @@ func main() {
 	// 	AllowHeaders: "Origin, Content-Type, Accept",
 	// }))
 
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load(".env")
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	//
 	PORT := os.Getenv("PORT")
