@@ -40,12 +40,14 @@ func MongoDB() {
 }
 
 // Hàm lấy collection cho cơ sở dữ liệu và collection cụ thể
-func GetCollection(databaseName, collectionName string) *mongo.Collection {
+func GetCollection(collectionName string) *mongo.Collection {
+	var DBName = os.Getenv("DBName")
+
 	if client == nil {
 		log.Fatal("❌ MongoDB client chưa được khởi tạo!")
 	}
-	log.Printf("✅ Đang lấy collection %s từ database %s", collectionName, databaseName)
-	return client.Database(databaseName).Collection(collectionName)
+	log.Printf("✅ Đang lấy collection %s từ database %s",DBName, collectionName)
+	return client.Database(DBName).Collection(collectionName)
 }
 
 // Hàm đóng kết nối MongoDB khi ứng dụng dừng

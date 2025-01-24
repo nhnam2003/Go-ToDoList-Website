@@ -16,7 +16,7 @@ func GetUser(c *fiber.Ctx) error {
 	}
 
 	// Kiểm tra kết nối MongoDB và lấy đúng collection
-	insertResult, err := config.GetCollection("TodoGo", "user").InsertOne(context.TODO(), user)
+	insertResult, err := config.GetCollection("user").InsertOne(context.TODO(), user)
 	if err != nil {
 		return err
 	}

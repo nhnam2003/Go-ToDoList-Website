@@ -1,9 +1,7 @@
 package models
 
 import (
-	"github.com/DaiNef163/Go-ToDoList/src/config"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type User struct {
@@ -15,10 +13,3 @@ type User struct {
 	Role     []string           `json:"role" bson:"role"`
 }
 
-var userCollection *mongo.Collection
-
-// Khởi tạo userCollection
-func InitUserCollection() {
-	// Đảm bảo kết nối MongoDB đã thành công trước khi lấy collection
-	userCollection = config.GetCollection("userDB", "TodoGo")
-}

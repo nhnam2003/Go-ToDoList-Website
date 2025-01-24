@@ -2,33 +2,35 @@ package controllers
 
 import (
 	"context"
+
 	// "fmt"
 	// "go.mongodb.org/mongo-driver/bson"
 
 	"github.com/DaiNef163/Go-ToDoList/src/config"
 	"github.com/DaiNef163/Go-ToDoList/src/models"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// func GetTodos(c *fiber.Ctx) error {
-// 	var todos []models.ToDo
-// 	cursor, err := config.GetDB().Find(context.Background(), bson.M{})
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer cursor.Close(context.Background())
+func GetTodos(c *fiber.Ctx) error {
+	var todos []models.ToDo
 
-// 	for cursor.Next(context.Background()) {
-// 		var todo models.ToDo
-// 		if err := cursor.Decode(&todo); err != nil {
-// 			return err
-// 		}
-// 		todos = append(todos, todo)
-// 	}
-// 	return c.JSON(todos)
-// }
+	cursor, err := config.GetCollection("todo").Find(context.Background(), bson.M{})
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(context.Background())
 
+	for cursor.Next(context.Background()) {
+		var todo models.ToDo
+		if err := cursor.Decode(&todo); err != nil {
+			return err
+		}
+		todos = append(todos, todo)
+	}
+	return c.JSON(todos)
+}
 
 func CreateTodo(c *fiber.Ctx) error {
 	todo := new(models.ToDo)
@@ -37,7 +39,7 @@ func CreateTodo(c *fiber.Ctx) error {
 	}
 
 	// Kiểm tra kết nối MongoDB và lấy đúng collection
-	insertResult, err := config.GetCollection("TodoGo", "todo").InsertOne(context.TODO(), todo)
+	insertResult, err := config.GetCollection("todo").InsertOne(context.TODO(), todo)
 	if err != nil {
 		return err
 	}
@@ -46,7 +48,6 @@ func CreateTodo(c *fiber.Ctx) error {
 
 	return c.JSON(todo)
 }
-
 
 // func UpdateTodo(c *fiber.Ctx) error {
 // 	id := c.Params("id")

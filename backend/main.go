@@ -22,7 +22,6 @@ func main() {
 	// Kết nối MongoDB
 	config.MongoDB()
 
-	models.InitUserCollection()
 
 	// Đóng kết nối khi ứng dụng dừng
 	defer config.CloseDB()
