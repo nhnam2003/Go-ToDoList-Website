@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/DaiNef163/Go-ToDoList/src/config"
-	"github.com/DaiNef163/Go-ToDoList/src/models"
 	"github.com/DaiNef163/Go-ToDoList/src/routes"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -36,6 +35,7 @@ func main() {
 	})
 
 	// Setup routes
+	routes.RoutesAccount(app)
 	routes.RoutesTodo(app)
 	routes.RoutesUser(app)
 
@@ -49,6 +49,6 @@ func main() {
 	// 	app.Static("/", "./client/dist")
 	// }
 
-	fmt.Println("🚀 Server đang chạy tại PORT:", port)
+	fmt.Println("Server đang chạy tại PORT:", port)
 	log.Fatal(app.Listen("0.0.0.0:" + port))
 }

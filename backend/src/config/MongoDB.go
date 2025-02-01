@@ -46,6 +46,8 @@ func GetCollection(collectionName string) *mongo.Collection {
 	if client == nil {
 		log.Fatal("❌ MongoDB client chưa được khởi tạo!")
 	}
+
+	
 	log.Printf("✅ Đang lấy collection %s từ database %s",DBName, collectionName)
 	return client.Database(DBName).Collection(collectionName)
 }
