@@ -1,9 +1,9 @@
 package models
 
 type Account struct {
-	username string `json:"username" bson:"username"`
-	password string `json:"password" bson:"password"`
-	name     string `json:"name" bson:"name"`
-	age      int    `json:"age" bson:"age"`
-	role     string `json:"role" bson:"role"`
+	Username string `json:"username" bson:"username"`
+	Password string `json:"password" bson:"password"`
+	Name     string `json:"name" bson:"name"`
+	Age      int    `json:"age" bson:"age"`
+	Role     string `json:"role" bson:"role"`
 }

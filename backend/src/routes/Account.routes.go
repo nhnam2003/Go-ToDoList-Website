@@ -8,6 +8,8 @@ import (
 func RoutesAccount(app *fiber.App) {
 	api := app.Group("/api")
 
-	api.Get("/account",controllers.CheckHassPassword)
+	api.Get("/account", controllers.CheckHassPassword)
+	api.Post("/login", controllers.Login)
+	api.Post("/register", controllers.Register)
 
 }
