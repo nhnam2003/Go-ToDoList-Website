@@ -2,11 +2,14 @@ package controllers
 
 import (
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/DaiNef163/Go-ToDoList/src/config"
 	"github.com/DaiNef163/Go-ToDoList/src/models"
 	hashpassword "github.com/DaiNef163/Go-ToDoList/src/service/hashPassword"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -29,11 +32,13 @@ func Register(c *fiber.Ctx) error {
 	var hashPassword, _ = hashpassword.HashPassword(data.Password)
 
 	user := models.Account{
-		Username: data.Username,
-		Password: hashPassword,
-		Name:     data.Name,
-		Age:      data.Age,
-		Role:     data.Role,
+		Username:  data.Username,
+		Password:  hashPassword,
+		Name:      data.Name,
+		Age:       data.Age,
+		Role:      data.Role,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	collection := config.GetCollection("Account")
@@ -76,5 +81,30 @@ func Login(c *fiber.Ctx) error {
 		return c.Status(400).JSON("Username or Password is incorrect")
 	}
 
-	return c.Status(200).JSON("Login success ")
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["username"] = dataDB.Username
+	claims["role"] = dataDB.Role
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	serect := os.Getenv("JWT_SECRET")
+
+	if serect == "" {
+		return c.Status(500).JSON("JWT_SECRET is empty")
+	}
+
+	tokenString, err := token.SignedString([]byte(serect))
+	if err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
+
+	return c.Status(200).JSON(fiber.Map{
+		"message": "Login successful",
+		"token":   tokenString,
+		"user": fiber.Map{
+			"username": dataDB.Username,
+			"role":     dataDB.Role,
+		},
+	})
 }
