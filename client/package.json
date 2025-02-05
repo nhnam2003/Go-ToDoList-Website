@@ -10,15 +10,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/react": "^2.10.5",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@tailwindcss/vite": "^4.0.3",
     "@tanstack/react-query": "^5.64.2",
     "axios": "^1.7.9",
-    "framer-motion": "^12.0.1",
+    "framer-motion": "^12.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-icons": "^5.4.0"
+    "react-icons": "^5.4.0",
+    "react-router-dom": "^7.1.5",
+    "tailwindcss": "^4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
