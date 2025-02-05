@@ -24,7 +24,7 @@ func GetTodos(c *fiber.Ctx) error {
 	userID := user["userId"].(string)
 
 	// Lấy collection "todos" từ MongoDB
-	todoCollection := config.GetCollection("todos")
+	todoCollection := config.GetCollection("todo")
 
 	// Tìm các todo của người dùng
 	var todos []models.ToDo
@@ -60,7 +60,7 @@ func GetTodos(c *fiber.Ctx) error {
 
 	// Trả về danh sách todos
 	return c.JSON(fiber.Map{
-		"todos": todos,
+		"todo": todos,
 	})
 }
 
@@ -86,7 +86,7 @@ func CreateTodo(c *fiber.Ctx) error {
 	todo.Complete = false // mặc định là chưa hoàn thành
 
 	// Lấy collection "todos" từ MongoDB
-	collection := config.GetCollection("todos")
+	collection := config.GetCollection("todo")
 
 	// Thêm todo vào MongoDB
 	result, err := collection.InsertOne(c.Context(), todo)
