@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	// "fmt"
 	// "go.mongodb.org/mongo-driver/bson"
@@ -19,14 +20,11 @@ import (
 )
 
 func GetTodos(c *fiber.Ctx) error {
-	// Lấy thông tin người dùng từ context (được lưu bởi middleware Auth)
 	user := c.Locals("user").(jwt.MapClaims)
 	userID := user["userId"].(string)
 
-	// Lấy collection "todos" từ MongoDB
 	todoCollection := config.GetCollection("todo")
 
-	// Tìm các todo của người dùng
 	var todos []models.ToDo
 	filter := bson.M{"userId": userID}
 	cursor, err := todoCollection.Find(context.TODO(), filter)
@@ -38,7 +36,6 @@ func GetTodos(c *fiber.Ctx) error {
 	}
 	defer cursor.Close(context.TODO())
 
-	// Duyệt qua các kết quả và thêm vào danh sách todos
 	for cursor.Next(context.TODO()) {
 		var todo models.ToDo
 		if err := cursor.Decode(&todo); err != nil {
@@ -58,18 +55,15 @@ func GetTodos(c *fiber.Ctx) error {
 		})
 	}
 
-	// Trả về danh sách todos
 	return c.JSON(fiber.Map{
 		"todo": todos,
 	})
 }
 
 func CreateTodo(c *fiber.Ctx) error {
-	// Lấy thông tin người dùng từ context
 	user := c.Locals("user").(jwt.MapClaims)
 	userID := user["userId"].(string)
 
-	// Khai báo một đối tượng Todo mới từ body request
 	todo := new(models.ToDo)
 
 	log.Printf("Dữ liệu nhận được: %+v", todo)
@@ -81,14 +75,14 @@ func CreateTodo(c *fiber.Ctx) error {
 		})
 	}
 
-	// Set userID cho todo
 	todo.UserID = userID
-	todo.Complete = false // mặc định là chưa hoàn thành
+	todo.Complete = false 
+	todo.CreatedAt = time.Now()
 
-	// Lấy collection "todos" từ MongoDB
+
 	collection := config.GetCollection("todo")
 
-	// Thêm todo vào MongoDB
+
 	result, err := collection.InsertOne(c.Context(), todo)
 	if err != nil {
 		log.Println("❌ Lỗi khi thêm todo:", err)
@@ -106,6 +100,48 @@ func CreateTodo(c *fiber.Ctx) error {
 }
 
 func UpdateTodo(c *fiber.Ctx) error {
+	user := c.Locals("user").(jwt.MapClaims)
+	userID := user["userId"].(string)
+
+	id := c.Params("id")
+	ObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	// Lọc todo theo _id
+	filter := bson.M{"_id": ObjectID, "userId": userID} // Đảm bảo chỉ cập nhật của người dùng hiện tại
+	update := bson.M{
+		"$set": bson.M{
+			"complete":  true,                // Cập nhật trường complete
+			"updated_at": time.Now(),         // Cập nhật thời gian update
+		},
+	}
+
+	// Thực hiện cập nhật
+	result, err := config.GetCollection("todo").UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	// Kiểm tra nếu không có bản ghi nào được tìm thấy và cập nhật
+	if result.MatchedCount == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "Todo not found or unauthorized",
+		})
+	}
+
+	// In ra ID đã cập nhật (cho debug)
+	fmt.Printf("Updated Todo ID: %s\n", id)
+
+	return c.JSON(fiber.Map{
+		"message": "Todo updated successfully",
+	})
+}
+
+
+
+func DeleteTodo(c *fiber.Ctx) error {
 	id := c.Params("id")
 	ObjectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -113,39 +149,15 @@ func UpdateTodo(c *fiber.Ctx) error {
 	}
 
 	filter := bson.M{"_id": ObjectID}
-	update := bson.M{"$set": bson.M{"completed": true}}
-	result, err := config.GetCollection("todo").UpdateOne(context.Background(), filter, update)
+	result, err := config.GetCollection("todo").DeleteOne(context.Background(), filter)
 	if err != nil {
 		return err
 	}
 
-	if result.MatchedCount == 0 {
+	if result.DeletedCount == 0 {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "Todo not found",
 		})
 	}
-
-	fmt.Printf("ID: %s\n", id)
-	return c.JSON(fiber.Map{"message": "Todo updated"})
+	return c.JSON(fiber.Map{"message": "Todo deleted"})
 }
-
-// func DeleteTodo(c *fiber.Ctx) error {
-// 	id := c.Params("id")
-// 	ObjectID, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	filter := bson.M{"_id": ObjectID}
-// 	result, err := config.GetDB().DeleteOne(context.Background(), filter)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if result.DeletedCount == 0 {
-// 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-// 			"error": "Todo not found",
-// 		})
-// 	}
-// 	return c.JSON(fiber.Map{"message": "Todo deleted"})
-// }

@@ -11,6 +11,6 @@ func RoutesTodo(app *fiber.App) {
 
 	api.Get("/gettodos", middlewares.Auth, controllers.GetTodos)
 	api.Post("/createtodos", middlewares.Auth, controllers.CreateTodo)
-	api.Patch("/updatetodos/:id", controllers.UpdateTodo)
-	// api.Delete("/deletetodos/:id", controllers.DeleteTodo)
+	api.Patch("/updatetodos/:id", middlewares.Auth, controllers.UpdateTodo)
+	api.Delete("/deletetodos/:id", controllers.DeleteTodo)
 }
