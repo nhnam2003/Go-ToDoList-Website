@@ -21,15 +21,15 @@ func main() {
 	// Kết nối MongoDB
 	config.MongoDB()
 
-
 	// Đóng kết nối khi ứng dụng dừng
 	defer config.CloseDB()
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept,Authorization",
 	}))
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Server is running!")
 	})
@@ -37,7 +37,6 @@ func main() {
 	// Setup routes
 	routes.RoutesAccount(app)
 	routes.RoutesTodo(app)
-	routes.RoutesUser(app)
 
 	// Lấy PORT từ biến môi trường
 	port := os.Getenv("PORT")

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"time"
 
@@ -15,25 +15,67 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func CheckHassPassword(c *fiber.Ctx) error {
-	pw1 := "abc123"
-	hash, _ := hashpassword.HashPassword(pw1)
-	return c.JSON(hash)
+func CreateJWTToken(username, role, userID string) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["username"] = username
+	claims["role"] = role
+	claims["userId"] = userID
 
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		return "", errors.New("JWT_SECRET is not set in environment variables")
+	}
+
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return tokenString, nil
 }
 
 func Register(c *fiber.Ctx) error {
-
 	var data models.Account
-	err1 := c.BodyParser(&data)
-	if err1 != nil {
-		return err1
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Dữ liệu không hợp lệ",
+			"error":   err.Error(),
+		})
 	}
-	var hashPassword, _ = hashpassword.HashPassword(data.Password)
+
+	if data.Username == "" || data.Password == "" {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Username và password không được để trống",
+		})
+	}
+
+	// Kiểm tra username đã tồn tại
+	collection := config.GetCollection("Account")
+	existingUser := models.Account{}
+	err := collection.FindOne(c.Context(), bson.M{"username": data.Username}).Decode(&existingUser)
+	if err == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Username đã tồn tại",
+		})
+	} else if !errors.Is(err, mongo.ErrNoDocuments) {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Lỗi server",
+			"error":   err.Error(),
+		})
+	}
+
+	hashPwd, err := hashpassword.HashPassword(data.Password)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Lỗi khi mã hóa mật khẩu",
+			"error":   err.Error(),
+		})
+	}
 
 	user := models.Account{
 		Username:  data.Username,
-		Password:  hashPassword,
+		Password:  hashPwd,
 		Name:      data.Name,
 		Age:       data.Age,
 		Role:      data.Role,
@@ -41,70 +83,75 @@ func Register(c *fiber.Ctx) error {
 		UpdatedAt: time.Now(),
 	}
 
-	collection := config.GetCollection("Account")
-	_, err2 := collection.InsertOne(c.Context(), user)
-	if err2 != nil {
-		return err2
+	if _, err := collection.InsertOne(c.Context(), user); err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Lỗi khi tạo tài khoản",
+			"error":   err.Error(),
+		})
 	}
-	return c.JSON(user)
 
+	// Ẩn mật khẩu trước khi trả về
+	user.Password = ""
+	return c.Status(201).JSON(fiber.Map{
+		"message": "Đăng ký thành công",
+		"user":    user,
+	})
 }
 
 func Login(c *fiber.Ctx) error {
 	var data models.Account
-
-	err1 := c.BodyParser(&data)
-	if err1 != nil {
-		return c.Status(400).JSON(err1.Error())
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Dữ liệu không hợp lệ",
+			"error":   err.Error(),
+		})
 	}
-	fmt.Println("&data", &data)
+
 	if data.Username == "" || data.Password == "" {
-		return c.Status(400).JSON("Username or Password is empty")
+		return c.Status(400).JSON(fiber.Map{
+			"message": "Username và password không được để trống",
+		})
 	}
 
-	var dataDB models.Account
-	var collection = config.GetCollection("Account")
-	err := collection.FindOne(c.Context(), bson.M{"username": data.Username}).Decode(&dataDB)
-	// err := collection.FindOne(c.Context(), bson.M{
-	// 	"username": data.Username,
-	// }).Decode(&existingUser)
-
+	var userDB models.Account
+	collection := config.GetCollection("Account")
+	err := collection.FindOne(c.Context(), bson.M{"username": data.Username}).Decode(&userDB)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return c.Status(400).JSON("Username or Password is incorrect")
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return c.Status(401).JSON(fiber.Map{
+				"message": "Username hoặc password không chính xác",
+			})
 		}
-		return c.Status(400).JSON(err.Error())
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Lỗi server",
+			"error":   err.Error(),
+		})
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(dataDB.Password), []byte(data.Password))
+	// Kiểm tra mật khẩu
+	if err := bcrypt.CompareHashAndPassword([]byte(userDB.Password), []byte(data.Password)); err != nil {
+		return c.Status(401).JSON(fiber.Map{
+			"message": "Username hoặc password không chính xác",
+		})
+	}
+
+	// Tạo JWT token
+	token, err := CreateJWTToken(userDB.Username, userDB.Role, userDB.ID.Hex()) // Sử dụng .Hex() để chuyển ObjectID thành string
 	if err != nil {
-		return c.Status(400).JSON("Username or Password is incorrect")
-	}
-
-	token := jwt.New(jwt.SigningMethodHS256)
-
-	claims := token.Claims.(jwt.MapClaims)
-	claims["username"] = dataDB.Username
-	claims["role"] = dataDB.Role
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
-	serect := os.Getenv("JWT_SECRET")
-
-	if serect == "" {
-		return c.Status(500).JSON("JWT_SECRET is empty")
-	}
-
-	tokenString, err := token.SignedString([]byte(serect))
-	if err != nil {
-		return c.Status(500).JSON(err.Error())
+		return c.Status(500).JSON(fiber.Map{
+			"message": "Lỗi khi tạo token",
+			"error":   err.Error(),
+		})
 	}
 
 	return c.Status(200).JSON(fiber.Map{
-		"message": "Login successful",
-		"token":   tokenString,
+		"message": "Đăng nhập thành công",
+		"token":   token,
 		"user": fiber.Map{
-			"username": dataDB.Username,
-			"role":     dataDB.Role,
+			"username": userDB.Username,
+			"role":     userDB.Role,
+			"userId":   userDB.ID.Hex(), // Sử dụng .Hex() ở đây cũng vậy
 		},
 	})
 }
+
