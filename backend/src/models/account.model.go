@@ -12,7 +12,7 @@ type Account struct {
 	Password  string             `json:"password" bson:"password"`
 	Name      string             `json:"name" bson:"name"`
 	Age       int                `json:"age" bson:"age"`
-	Role      string             `json:"role" bson:"role"` // Có thể là "admin", "user", v.v.
+	Role      string             `json:"role" bson:"role"` 
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
 }

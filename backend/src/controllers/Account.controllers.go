@@ -139,7 +139,7 @@ func Login(c *fiber.Ctx) error {
 	token, err := CreateJWTToken(userDB.Username, userDB.Role, userDB.ID.Hex()) // Sử dụng .Hex() để chuyển ObjectID thành string
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"message": "Lỗi khi tạo token",
+			"message": "Lỗi khi tạo token 1 ",
 			"error":   err.Error(),
 		})
 	}
@@ -150,7 +150,7 @@ func Login(c *fiber.Ctx) error {
 		"user": fiber.Map{
 			"username": userDB.Username,
 			"role":     userDB.Role,
-			"userId":   userDB.ID.Hex(), // Sử dụng .Hex() ở đây cũng vậy
+			"userId":   userDB.ID.Hex(), 
 		},
 	})
 }
