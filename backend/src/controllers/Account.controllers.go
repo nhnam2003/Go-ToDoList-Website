@@ -131,7 +131,7 @@ func Login(c *fiber.Ctx) error {
 	// Kiểm tra mật khẩu
 	if err := bcrypt.CompareHashAndPassword([]byte(userDB.Password), []byte(data.Password)); err != nil {
 		return c.Status(401).JSON(fiber.Map{
-			"message": "Username hoặc password không chính xác",
+			"message": "Username hoặc password không chính xác 1",
 		})
 	}
 
